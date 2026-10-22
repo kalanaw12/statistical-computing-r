@@ -1,0 +1,126 @@
+---
+title: "Exercises 1.1 to 1.8"
+author: "Kalana Wijekoon"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.width = 7, fig.height = 5)
+library(ggplot2)
+```
+
+## Exercise 1.1: Random sample from the t(4) distribution
+
+A random sample of 100 values is generated from the t distribution with 4 degrees of freedom using `rt`, and displayed as a probability histogram with `MASS::truehist`.
+
+```{r ex-1-1}
+set.seed(123)
+x <- rt(100, df = 4)
+MASS::truehist(x, main = "Sample from t(4)")
+```
+
+## Exercise 1.2: Add the t(4) density curve
+
+The true t(4) density (`dt`) is added to the histogram using `curve` with `add = TRUE`.
+
+```{r ex-1-2}
+MASS::truehist(x, main = "Sample from t(4) with true density")
+curve(dt(x, df = 4), add = TRUE)
+```
+
+## Exercise 1.3: Add the estimated density curve
+
+The kernel density estimate from `density` is added in red. It approximates the true t(4) density.
+
+```{r ex-1-3}
+MASS::truehist(x, main = "Histogram, true density and estimated density")
+curve(dt(x, df = 4), add = TRUE)
+lines(density(x), col = 2)
+```
+
+The red estimated curve roughly follows the black true density curve.
+
+## Exercise 1.4: Transformation function
+
+**(a)** The function `f` transforms a vector `x` by subtracting `a` and dividing by `b`.
+
+```{r ex-1-4a}
+f <- function(x, a, b) {
+  (x - a) / b
+}
+```
+
+**(b)** A Normal(2, 2) sample is transformed to the interval [0, 1].
+
+```{r ex-1-4b}
+set.seed(123)
+x <- rnorm(100, mean = 2, sd = 2)
+y <- f(x, a = min(x), b = max(x) - min(x))
+summary(x)
+summary(y)
+```
+
+The transformed sample `y` has a minimum of 0 and a maximum of 1.
+
+## Exercise 1.5: Studentize the sample
+
+The sample is centered by its mean and scaled by its standard deviation.
+
+```{r ex-1-5}
+z <- f(x, a = mean(x), b = sd(x))
+summary(z)
+hist(z, main = "Studentized sample z")
+sd(z)
+```
+
+The mean of `z` is 0 (up to rounding error) and the standard deviation is exactly 1.
+
+## Exercise 1.6: Center by median, scale by IQR
+
+```{r ex-1-6}
+w <- f(x, a = median(x), b = IQR(x))
+summary(w)
+hist(w, main = "Median/IQR scaled sample w")
+sd(w)
+```
+
+Compared with Exercise 1.5, the median of `w` is exactly 0 and its IQR is 1, but its mean is not exactly 0 and its standard deviation is not 1. The median and IQR are less affected by outliers than the mean and standard deviation.
+
+## Exercise 1.7: ggplot with color = drv
+
+Adding `color = drv` inside `aes()` colors the points by drive type (front-wheel, rear-wheel, four-wheel) and automatically creates a legend.
+
+```{r ex-1-7}
+ggplot(mpg, aes(displ, hwy, color = drv)) +
+  geom_point() +
+  facet_wrap(~ class)
+```
+
+## Exercise 1.8: Examples 1.12 and 1.14
+
+### Example 1.12: A minimal ggplot scatterplot
+
+This example introduces `ggplot`. The first version specifies the data (`iris`), maps `Sepal.Length` to the x axis and `Sepal.Width` to the y axis, and draws the points with `geom_point()`. In this version all three species have the same color, so the effect of species cannot be seen.
+
+```{r example-1-12a}
+ggplot(data = iris, aes(x = Sepal.Length, y = Sepal.Width)) +
+  geom_point()
+```
+
+The second version adds aesthetics that map `Species` to both color and plotting symbol, and sets the symbol size to 2. A legend is added to the graph automatically, so the three species can be distinguished.
+
+```{r example-1-12b}
+ggplot(iris, aes(Sepal.Length, Sepal.Width,
+                 color = Species, shape = Species)) +
+  geom_point(size = 2)
+```
+
+### Example 1.14: MPG by engine displacement
+
+This example uses the `mpg` data from the `ggplot2` package. It plots highway mileage (`hwy`) against engine displacement (`displ`) for each class of vehicle. `facet_wrap(~ class)` splits the plot into an array of panels, one per class, with identical x and y axes so they are easy to compare.
+
+```{r example-1-14}
+ggplot(mpg, aes(displ, hwy)) +
+  geom_point() +
+  facet_wrap(~ class)
+```
